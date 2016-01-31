@@ -1,0 +1,93 @@
+#!/bin/bash
+initial_setup() {
+  DKEYFILE="/tmp/key.pub"
+  KEYFILE="${HOMEDIR}/.ssh/authorized_keys"
+  JENKINSDIR="${HOMEDIR}/jenkins-slave"
+  if ! grep "127.0.0.1 $(hostname)" /etc/hosts &> /dev/null ; then
+    print_info_ensuring_localhost_resolve
+    echo "127.0.0.1 $(hostname)" >> /etc/hosts
+  fi
+  print_info_updating_system
+  apt-get -qq -o=Dpkg::Use-Pty=0 update > /dev/null
+  apt-get -qq -o=Dpkg::Use-Pty=0 -y upgrade > /dev/null
+  print_info_installing_dependencies
+  apt-get -qq -o=Dpkg::Use-Pty=0 -y install debootstrap git openjdk-7-jdk build-essential python-dev python-pip wget htop ntpdate dphys-swapfile > /dev/null
+  if [ ! -d ${JENKINSDIR} ]; then
+    print_info_installing_jenkins_slave
+    mkdir ${JENKINSDIR}
+    wget -q https://jenkins-juliogonzalez.rhcloud.com/jnlpJars/slave.jar -O ${JENKINSDIR}/slave.jar
+    chown -R ubuntu:ubuntu ${JENKINSDIR}
+  fi
+  print_info_config_sudo "ubuntu"
+  echo 'Defaults:ubuntu !requiretty' > /etc/sudoers.d/ubuntu-notty
+  chmod 440 /etc/sudoers.d/ubuntu-notty
+}
+
+remove_chroot() {
+  umount ${CHROOTDIR}/home
+  umount ${CHROOTDIR}/sys/
+  umount ${CHROOTDIR}/proc/
+  umount -l ${CHROOTDIR}/dev/
+  # Delete all lines from /etc/fstab related to the jail
+  sed -i -e "/$(echo ${CHROOTDIR}|sed -e 's/\//\\\//g')/d" /etc/fstab
+  rm -rf ${CHROOTDIR}
+}
+
+create_chroot() {
+  print_info_creating_basic_jail
+  mkdir -p ${CHROOTDIR}
+  debootstrap --variant=buildd --arch ${ARCHITECTURE} precise ${CHROOTDIR} http://nova.clouds.archive.ubuntu.com/ubuntu/ > /dev/null
+  cp /etc/resolv.conf ${CHROOTDIR}/etc/resolv.conf
+  print_info_adjusting_mount_points
+  echo "/home ${CHROOTDIR}/home none bind" >> /etc/fstab
+  echo "sysfs ${CHROOTDIR}/sys/ sysfs none" >> /etc/fstab
+  echo "/proc ${CHROOTDIR}/proc/ proc none" >> /etc/fstab
+  echo "/dev ${CHROOTDIR}/dev/ none bind" >> /etc/fstab
+  print_info_mounting_mount_points
+  mount ${CHROOTDIR}/home
+  mount ${CHROOTDIR}/sys/
+  mount ${CHROOTDIR}/proc/
+  mount ${CHROOTDIR}/dev/
+  print_info_running_remaining_chroot_script
+  chroot ${CHROOTDIR} /bin/bash +x -e <<'EOF'
+# Generate locales
+locale-gen en_US.UTF-8
+# Make sure our hostname resolves to 127.0.0.1
+echo "127.0.0.1 ${HOSTNAME}" >> /etc/hosts
+# Enable universe and multiverse
+sed -i -e 's/deb http:\/\/nova.clouds.archive.ubuntu.com\/ubuntu precise main/deb http:\/\/nova.clouds.archive.ubuntu.com\/ubuntu precise main universe multiverse/' /etc/apt/sources.list
+# Update metadata and install some basic tools
+apt-get -qq -o=Dpkg::Use-Pty=0 update  > /dev/null
+apt-get -qq -o=Dpkg::Use-Pty=0 -y install wget lsb-release curl  > /dev/null
+# Install PostgreSQL repository
+sed -i -e "1 i\deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -c -s)-pgdg ${SHORTDOTVER} main" /etc/apt/sources.list
+wget --quiet --no-check-certificate -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+apt-get -qq -o=Dpkg::Use-Pty=0 update  > /dev/null
+# Update metadata and install the rest of packages
+apt-get -qq -o=Dpkg::Use-Pty=0 -y install postgresql-${SHORTDOTVER} postgresql-client-${SHORTDOTVER} postgresql-server-dev-${SHORTDOTVER} git build-essential libsybdb5 freetds-dev freetds-common freetds-bin python-pip python-dev sudo update-notifier-common libffi-dev libssl-dev > /dev/null
+# Make sure PostgreSQL is stopped and never starts on boot
+service postgresql stop ${SHORTDOTVER}
+update-rc.d postgresql disable
+# Configure port
+sed -i -e "s/port = 5432/port = ${PORT}/" /etc/postgresql/${SHORTDOTVER}/main/postgresql.conf
+# Increase the time that the init script will wait for the service to be ready (for slow instances)
+sed -i -e "s/pg_ctl_options = ''/pg_ctl_options = '-w -t 240'/" /etc/postgresql/${SHORTDOTVER}/main/pg_ctl.conf
+# Allow password connections from localhost
+sed -i -r -e 's/host\s+all\s+all\s+127.0.0.1\/32\s+md5/host all all 127.0.0.1\/32 password/' /etc/postgresql/${SHORTDOTVER}/main/pg_hba.conf
+# Create user ubuntu
+addgroup ubuntu --gid ${GROUPID}
+adduser ubuntu --no-create-home --gecos 'Ubuntu' --disabled-password --home ${HOMEDIR} --uid ${USERID} --gid ${GROUPID}
+# Allow user ubuntu to use sudo without asking password and without tty
+echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/ubuntu
+chmod 440 /etc/sudoers.d/ubuntu
+echo 'Defaults:ubuntu !requiretty' > /etc/sudoers.d/ubuntu-notty
+chmod 440 /etc/sudoers.d/ubuntu-notty
+# Install needed python modules
+pip install pyopenssl ndg-httpsclient pyasn1
+PATH=${PATH}:/usr/lib/postgresql/${SHORTDOTVER}/bin/ pip -q install psycopg2 pymssql
+EOF
+# Configure locales for PostgreSQL <= 9.3
+if [ ${SHORTVER} -le 93 ]; then
+  cp ${FILES_DIR}/locales.conf ${CHROOTDIR}/etc/freetds/locales.conf
+fi
+}
