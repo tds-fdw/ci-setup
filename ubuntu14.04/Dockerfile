@@ -1,15 +1,7 @@
-FROM juliogonzalez/ubuntu12.04-postgresql:<!POSTRESQL_VER!>
+FROM juliogonzalez/ubuntu14.04-postgresql:<!POSTRESQL_VER!>
 MAINTAINER Julio Gonzalez Gil <git@juliogonzalez.es>
 
 USER root
-
-# Set locale (will be used by PostgreSQL initdb later on)
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
-RUN DEBIAN_FRONTEND=noninteractive locale-gen en_US.UTF-8 && \
-    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales && \
-    update-locale LANG=en_US.UTF-8
 
 # Create the wrapper to check for PostgreSQL updates
 ADD files/check_updates.sh /opt/check_updates.sh
@@ -29,6 +21,7 @@ RUN dpkg --get-selections | grep 'install' | grep -v 'deinstall'|cut -f1 > /opt/
      git \
      libsybdb5 \
      make \
+     python \
      python-dev \
      python-pip \
      sudo > /dev/null && \
