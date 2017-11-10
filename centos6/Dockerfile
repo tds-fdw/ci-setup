@@ -11,17 +11,22 @@ ENV LC_ALL en_US.UTF-8
 # Create the wrapper to check for PostgreSQL updates
 ADD files/check_updates.sh /opt/check_updates.sh
 
+# PostgreSQL arguments
+# Default version
+ARG POSTGRESQL_VER=9.5
+ENV POSTGRESQL_VER=${POSTGRESQL_VER}
+
 # Pass the output of date command as DATE argument if you want
 # make sure that the image is generated using the last
 # packages (cache will be used for previous steps)
 ARG DATE=None
 
-# Generate a list of original packages and add EPEL repository
-RUN rpm -qa --qf "%{NAME}\n" > /opt/packages-image.txt && \
-    yum -y -q install epel-release; yum -q clean all # ${DATE}
+# Generate a list of original packages and add EPEL repository ${DATE}
+RUN rpm -qa --qf "%{NAME}\n" > /opt/packages-image.txt
 
-# Install requirements for tds_fdw (except PostgreSQL)
-RUN yum -y -q install \
+# Install requirements for tds_fdw, psycopg2 and pymssql
+RUN yum -y -q install epel-release && \
+    yum -y -q install \
       automake \
       freetds \
       freetds-devel \
@@ -31,16 +36,18 @@ RUN yum -y -q install \
       python-pip \
       rpm-build \
       sudo && \
+    PATH=${PATH}:/usr/pgsql-${POSTGRESQL_VER}/bin && \
+    pip install -q setuptools_git==1.1 && \
+    pip install -q psycopg2 pymssql && \
+    yum -y -q remove \
+     epel-release \
+     python-devel \
+     python-pip && \
     yum -q clean all
 
 # Configure sudo
 RUN echo -e 'postgres ALL=(ALL) NOPASSWD:ALL\nDefaults:postgres !requiretty' > /etc/sudoers.d/postgresql && \
     chmod 440 /etc/sudoers.d/postgresql
-
-# PostgreSQL arguments
-# Default version
-ARG POSTGRESQL_VER=9.5
-ENV POSTGRESQL_VER=${POSTGRESQL_VER}
 
 # Configure locales.conf if PostgreSQL < 9.4
 ADD files/locales.conf /tmp/locales.conf
@@ -49,14 +56,6 @@ RUN /bin/bash -c "if (( $(echo ${POSTGRESQL_VER} 9.4 | awk '{print ($1 < $2)}') 
                   else \
                     rm -f /tmp/locales.conf; \
                   fi"
-
-# Install psycopg2 and pymssql
-RUN PATH=${PATH}:/usr/pgsql-${POSTGRESQL_VER}/bin && \
-    pip install -q psycopg2 pymssql && \
-    yum -y -q remove \
-     python-devel \
-     python-pip && \
-    yum -q clean all
 
 USER postgres
 
