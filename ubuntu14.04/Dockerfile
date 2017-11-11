@@ -28,6 +28,7 @@ RUN apt-get -qq -o=Dpkg::Use-Pty=0 update > /dev/null && \
      git \
      libsybdb5 \
      make \
+     python \
      python-dev \
      python-pip \
      sudo > /dev/null && \
