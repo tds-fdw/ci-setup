@@ -34,7 +34,9 @@ RUN apt-get -qq -o=Dpkg::Use-Pty=0 update > /dev/null && \
      sudo > /dev/null && \
     PATH=${PATH}:/usr/lib/postgresql/${POSTGRESQL_VER}/bin/ && \
     pip -q install setuptools_git==1.1 && \
-    pip -q install psycopg2 pymssql && \
+    pip -q install psycopg2 && \
+    # Not in the official doc, but >= 2.1.4 does not work with Python 2.6
+    pip -q install pymssql==2.1.3 && \
     apt-get -qq -o=Dpkg::Use-Pty=0 -y purge python-pip python-dev > /dev/null && \
     apt-get -qq -o=Dpkg::Use-Pty=0 -y --purge autoremove > /dev/null && \
     apt-get -qq -o=Dpkg::Use-Pty=0 clean > /dev/null
