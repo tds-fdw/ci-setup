@@ -27,11 +27,11 @@ RUN rpm -qa --qf "%{NAME}\n" > /opt/packages-image.txt
 # Install requirements for tds_fdw, psycopg2 and pymssql
 RUN yum -y -q install epel-release && \
     yum -y -q install \
-      automake \
       freetds \
       freetds-devel \
       gcc \
       git \
+      make \
       python-devel \
       python-pip \
       rpm-build \

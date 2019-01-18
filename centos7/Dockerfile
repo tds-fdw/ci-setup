@@ -28,13 +28,13 @@ RUN rpm -qa --qf "%{NAME}\n" > /opt/packages-image.txt
 # For centos-release-scl and llvm see https://github.com/tds-fdw/tds_fdw/blob/master/InstallCentOS.md#centos7-and-postgresql--11
 RUN yum -y -q install centos-release-scl epel-release && \
     yum -y -q install \
-      automake \
       freetds \
       freetds-devel \
       gcc \
       git \
       llvm-toolset-7-clang \
       llvm5.0 \
+      make \
       python-devel \
       python-pip \
       rpm-build \
