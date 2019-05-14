@@ -38,7 +38,7 @@ RUN yum -y -q install epel-release && \
       sudo && \
     PATH=${PATH}:/usr/pgsql-${POSTGRESQL_VER}/bin && \
     pip -q install setuptools_git==1.1 && \
-    pip -q install psycopg2 && \
+    pip -q install psycopg2==2.7.7 && \
     # Not in the official doc, but >= 2.1.4 does not work with Python 2.6
     pip -q install pymssql==2.1.3 && \
     yum -y -q remove \
