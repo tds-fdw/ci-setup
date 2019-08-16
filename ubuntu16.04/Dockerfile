@@ -35,7 +35,8 @@ RUN apt-get -qq -o=Dpkg::Use-Pty=0 update > /dev/null && \
     PATH=${PATH}:/usr/lib/postgresql/${POSTGRESQL_VER}/bin/ && \
     pip -q install setuptools_git && \
     pip -q install psycopg2 && \
-    pip -q install pymssql && \
+    # Done following https://stackoverflow.com/a/52749308/4055246 (recompling freetds is NOT needed)
+    pip install --no-binary :all: pymssql && \
     apt-get -qq -o=Dpkg::Use-Pty=0 -y purge python-pip python-dev > /dev/null && \
     apt-get -qq -o=Dpkg::Use-Pty=0 -y --purge autoremove > /dev/null && \
     apt-get -qq -o=Dpkg::Use-Pty=0 clean > /dev/null
