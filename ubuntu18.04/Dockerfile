@@ -34,6 +34,7 @@ RUN apt-get -qq -o=Dpkg::Use-Pty=0 update > /dev/null && \
      sudo > /dev/null && \
     PATH=${PATH}:/usr/lib/postgresql/${POSTGRESQL_VER}/bin/ && \
     pip -q install setuptools_git && \
+    pip -q install Cython
     pip -q install psycopg2 && \
     # Done following https://stackoverflow.com/a/52749308/4055246
     pip install --no-binary :all: pymssql && \
