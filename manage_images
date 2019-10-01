@@ -8,7 +8,7 @@ SCRIPT=$(basename ${0})
 
 # Supported distributions and PostgreSQL versions
 SUPPORTEDDISTROS="centos6 centos7 ubuntu14.04 ubuntu16.04 ubuntu18.04"
-SUPPORTEDPGVERS="9.3 9.4 9.5 9.6 10 11"
+SUPPORTEDPGVERS="9.3 9.4 9.5 9.6 10 11 12-testing"
 
 # Use remote images by default
 LOCAL="--pull"
@@ -71,13 +71,13 @@ check_updates() {
 update_image() {
   local IMAGE_NAME="${1}"
   local DISTRO="${2}"
-  local VERSION="${3}"
+  local VERSION="${3/-testing}"
   local FULL="${4}"
   local LOCAL="${5}"
   if [ "FULL" != "TRUE" ]; then
     NOCACHE='--no-cache'
   fi
-  cat ${DISTRO}/Dockerfile | sed -e "s/<!POSTRESQL_VER!>/${VERSION}/g" > ${DISTRO}/Dockerfile.tmp
+  cat ${DISTRO}/Dockerfile | sed -e "s/<!POSTRESQL_VER!>/${3}/g" > ${DISTRO}/Dockerfile.tmp
   local BASE_IMAGE=$(gawk 'match($0, /^FROM (.*)$/, a) {print a[1]}' ${DISTRO}/Dockerfile.tmp)
   docker pull ${BASE_IMAGE}
   docker build ${LOCAL} --build-arg POSTGRESQL_VER=${VERSION} --build-arg DATE=${DATE} ${NOCACHE} -t ${IMAGE_NAME_EXP} -f ${DISTRO}/Dockerfile.tmp ${DISTRO}/
