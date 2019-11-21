@@ -36,7 +36,8 @@ RUN apt-get -qq -o=Dpkg::Use-Pty=0 update > /dev/null && \
     pip -q install setuptools_git && \
     pip -q install psycopg2 && \
     # Done following https://stackoverflow.com/a/52749308/4055246 (recompling freetds is NOT needed)
-    pip install --no-binary :all: pymssql && \
+    # We should replace pymssql: https://github.com/pymssql/pymssql/issues/668
+    pip -q install --no-binary :all: 'pymssql<3.0' && \
     apt-get -qq -o=Dpkg::Use-Pty=0 -y purge python-pip python-dev > /dev/null && \
     apt-get -qq -o=Dpkg::Use-Pty=0 -y --purge autoremove > /dev/null && \
     apt-get -qq -o=Dpkg::Use-Pty=0 clean > /dev/null
