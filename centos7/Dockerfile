@@ -43,7 +43,7 @@ RUN yum -y -q install centos-release-scl epel-release && \
     pip -q install setuptools_git==1.1 && \
     pip -q install psycopg2 && \
     # We should replace pymssql: https://github.com/pymssql/pymssql/issues/668
-    pip -q install 'pymssql<3.0' && \
+    pip -q install --no-binary :all: pymssql==2.1.5 && \
     yum -y -q remove \
      epel-release \
      python-devel \
