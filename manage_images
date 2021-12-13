@@ -14,8 +14,10 @@ SUPPORTEDPGVERS="9.3 9.4 9.5 9.6 10 11 12 13"
 LOCAL="--pull"
 
 # Parameters for docker
-GID=$(id -G|cut -d' ' -f1)
 DATE=$(date +%Y%m%dT%H%M%s%N)
+
+# Use docker by default
+TOOL="docker"
 
 help() {
   echo ""
@@ -41,6 +43,8 @@ help() {
   echo "    Optional: A comma separated list of versions (supported: $(echo ${SUPPORTEDPGVERS}|sed -e 's/ /, /g'))"
   echo " --distributions=<DISTRIBUTIONS>"
   echo "    Optional: A comma separated list of distributions (supported: $(echo ${SUPPORTEDDISTROS}|sed -e 's/ /, /g'))"
+  echo " --podman"
+  echo "    Optional: Use podman instead of docker"
   echo ""
   exit 1
 }
@@ -62,9 +66,9 @@ check_updates() {
   local DISTRO="${2}"
   local VERSION="${3}"
   local CONTNAME="tdsfdw-${DISTRO}-postgresql${VERSION}"
-  docker run -i -u root --name ${CONTNAME} ${IMAGE_NAME} /opt/check_updates.sh
+  ${TOOL} run -i -u root --name ${CONTNAME} ${IMAGE_NAME} /opt/check_updates.sh
   local UPDATES=${?}
-  docker rm ${CONTNAME} > /dev/null
+  ${TOOL} rm ${CONTNAME} > /dev/null
   return "${UPDATES}"
 }
 
@@ -79,12 +83,12 @@ update_image() {
   fi
   cat ${DISTRO}/Dockerfile | sed -e "s/<!POSTRESQL_VER!>/${3}/g" > ${DISTRO}/Dockerfile.tmp
   local BASE_IMAGE=$(gawk 'match($0, /^FROM (.*)$/, a) {print a[1]}' ${DISTRO}/Dockerfile.tmp)
-  docker pull ${BASE_IMAGE}
-  docker build ${LOCAL} --build-arg POSTGRESQL_VER=${VERSION} --build-arg DATE=${DATE} ${NOCACHE} -t ${IMAGE_NAME_EXP} -f ${DISTRO}/Dockerfile.tmp ${DISTRO}/
+  ${TOOL} pull ${BASE_IMAGE}
+  ${TOOL} build ${LOCAL} --build-arg POSTGRESQL_VER=${VERSION} --build-arg DATE=${DATE} ${NOCACHE} -t ${IMAGE_NAME_EXP} -f ${DISTRO}/Dockerfile.tmp ${DISTRO}/
   rm -f ${DISTRO}/Dockerfile.tmp
 }
 
-ARGS=$(getopt -o h --long help,local,action:,versions:,distributions: -n "${SCRIPT}" -- "$@")
+ARGS=$(getopt -o h --long help,local,action:,versions:,distributions:,podman -n "${SCRIPT}" -- "$@")
 if [ $? -ne 0 ];
 then
   print_incorrect_syntax
@@ -100,6 +104,7 @@ while true ; do
     --local)    LOCAL=""; shift 1 ;;
     --versions) VERSIONS="${2}"; shift 2;;
     --distributions) DISTROS="${2}"; shift 2;;
+    --podman)        TOOL="podman"; shift 1;;
     --)         shift ; break ;;
     *)          print_incorrect_syntax; exit 1 ;;
   esac
@@ -187,12 +192,12 @@ for DISTRO in ${ADISTROS}; do
       echo " Promoting ${IMAGE_NAME_EXP} as:"
       echo "  ${IMAGE_NAME}"
       echo "================================================================================="
-      docker tag ${IMAGE_NAME_EXP} ${IMAGE_NAME}
+      ${TOOL} tag ${IMAGE_NAME_EXP} ${IMAGE_NAME}
     elif [ "${ACTION}" == "publish" ]; then
       echo "================================================================================="
       echo " Publishing ${IMAGE_NAME}..."
       echo "================================================================================="
-      docker push ${IMAGE_NAME}
+      ${TOOL} push ${IMAGE_NAME}
     fi
   done
 done
