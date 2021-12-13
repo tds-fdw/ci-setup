@@ -31,6 +31,7 @@ RUN dnf -y -q install epel-release && \
       gcc \
       git \
       make \
+      python3 \
       python3-pymssql \
       python3-psycopg2 \
       rpm-build \
