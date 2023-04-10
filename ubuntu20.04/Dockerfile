@@ -1,4 +1,4 @@
-FROM juliogonzalez/ubuntu20.04-postgresql:<!POSTRESQL_VER!>
+FROM docker.io/juliogonzalez/ubuntu20.04-postgresql:<!POSTRESQL_VER!>
 MAINTAINER Julio Gonzalez Gil <git@juliogonzalez.es>
 
 USER root
