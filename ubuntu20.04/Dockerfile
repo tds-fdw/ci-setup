@@ -34,11 +34,8 @@ RUN apt-get -qq -o=Dpkg::Use-Pty=0 update > /dev/null && \
      sudo > /dev/null && \
     PATH=${PATH}:/usr/lib/postgresql/${POSTGRESQL_VER}/bin/ && \
     pip3 -q install setuptools_git && \
-    pip3 -q install Cython && \
+    pip3 -q install pymssql  && \
     pip3 -q install psycopg2 && \
-    # Done following https://stackoverflow.com/a/52749308/4055246
-    # We should replace pymssql: https://github.com/pymssql/pymssql/issues/668
-    pip3 -q install --no-binary :all: pymssql==2.1.5 && \
     apt-get -qq -o=Dpkg::Use-Pty=0 -y purge python3-pip python3-dev > /dev/null && \
     apt-get -qq -o=Dpkg::Use-Pty=0 -y --purge autoremove > /dev/null && \
     apt-get -qq -o=Dpkg::Use-Pty=0 clean > /dev/null
