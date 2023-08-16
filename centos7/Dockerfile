@@ -46,7 +46,7 @@ RUN yum -y -q install centos-release-scl epel-release && \
     pip -q install psycopg2==2.8.6 && \
     # pymssql > 2.1.5 dropped support for Python 2
     # https://github.com/pymssql/pymssql/blob/master/ChangeLog.rst#version-220---2021-04-08---mikhail-terekhov
-    pip install pymssql==2.1.5 && \
+    pip -q install pymssql==2.1.5 && \
     yum -y -q remove \
      epel-release \
      python-devel \
