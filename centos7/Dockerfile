@@ -41,12 +41,14 @@ RUN yum -y -q install centos-release-scl epel-release && \
       sudo && \
     PATH=${PATH}:/usr/pgsql-${POSTGRESQL_VER}/bin && \
     pip -q install setuptools_git && \
+    pip -q install Cython==0.29.36 && \
     # psycopg2 > 2.8.6 only sypports python >= 3.6
     # https://www.psycopg.org/articles/2021/06/16/psycopg-29-released/
     pip -q install psycopg2==2.8.6 && \
     # pymssql > 2.1.5 dropped support for Python 2
     # https://github.com/pymssql/pymssql/blob/master/ChangeLog.rst#version-220---2021-04-08---mikhail-terekhov
-    pip -q install pymssql==2.1.5 && \
+    # Prebuilt pymssql does not work: https://www.juliogonzalez.es/fixing-pymssql-2-1-5-from-pip-on-centos7/501
+    pip -q install --no-binary :all: pymssql==2.1.5 && \
     yum -y -q remove \
      epel-release \
      python-devel \
