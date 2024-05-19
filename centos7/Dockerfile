@@ -35,6 +35,7 @@ RUN yum -y -q install centos-release-scl epel-release && \
       llvm-toolset-7-clang \
       llvm5.0 \
       make \
+      python2-certifi \
       python-devel \
       python-pip \
       rpm-build \
