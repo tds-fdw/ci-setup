@@ -29,12 +29,13 @@ RUN dnf -y -q install epel-release && \
       clang \
       freetds \
       freetds-devel \
-      gcc \
       git \
+      llvm \
       make \
       python3 \
       python3-pymssql \
       python3-psycopg2 \
+      redhat-rpm-config \
       rpm-build \
       sudo && \
     dnf -y -q remove \
