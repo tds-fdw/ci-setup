@@ -26,7 +26,7 @@ RUN rpm -qa --qf "%{NAME}\n" > /opt/packages-image.txt
 # Install requirements for tds_fdw, psycopg2 and pymssql
 RUN dnf -y -q install epel-release && \
     dnf -y -q install \
-      clang
+      clang \
       freetds \
       freetds-devel \
       gcc \
