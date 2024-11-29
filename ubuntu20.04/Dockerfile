@@ -26,6 +26,7 @@ RUN apt-get -qq -o=Dpkg::Use-Pty=0 update > /dev/null && \
      freetds-common \
      gcc \
      git \
+     libkrb5-dev \
      libsybdb5 \
      make \
      python3 \
