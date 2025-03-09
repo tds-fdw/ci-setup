@@ -1,4 +1,4 @@
-FROM docker.io/juliogonzalez/opensuseleap15.5-postgresql:<!POSTRESQL_VER!>
+FROM docker.io/juliogonzalez/opensuseleap15.6-postgresql:<!POSTRESQL_VER!>
 MAINTAINER Julio Gonzalez Gil <git@juliogonzalez.es>
 
 USER root
