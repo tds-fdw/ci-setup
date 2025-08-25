@@ -25,6 +25,7 @@ RUN rpm -qa --qf "%{NAME}\n" > /opt/packages-image.txt
 
 # Install requirements for tds_fdw, psycopg2 and pymssql
 RUN zypper -q install -y \
+      clang \
       freetds \
       freetds-devel \
       gcc \
