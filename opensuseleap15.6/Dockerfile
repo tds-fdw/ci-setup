@@ -30,6 +30,7 @@ RUN zypper -q install -y \
       freetds-devel \
       gcc \
       git \
+      llvm \
       make \
       python3 \
       python3-pymssql \
