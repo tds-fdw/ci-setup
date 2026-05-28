@@ -6,7 +6,7 @@ All you need to build container images to build and test [tds_fdw](https://githu
 
 Current distributions available:
 
-* openSUSE Leap 15.6
+* openSUSE Leap 16.0
 * Rocky Linux 8
 * Ubuntu 24.04
 
