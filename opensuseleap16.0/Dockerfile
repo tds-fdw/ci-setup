@@ -20,6 +20,12 @@ ENV POSTGRESQL_VER=${POSTGRESQL_VER}
 # packages (cache will be used for previous steps)
 ARG DATE=None
 
+# openSUSE Leap 16.0 does not ship pymssql, install it with pip
+RUN zypper -q install -y python3-pip && \
+    pip3 install --root-user-action ignore pymssql && \
+    zypper -q remove -y python3-pip && \
+    zypper clean -a
+
 # Generate a list of original packages ${DATE}
 RUN rpm -qa --qf "%{NAME}\n" > /opt/packages-image.txt
 
@@ -33,7 +39,6 @@ RUN zypper -q install -y \
       llvm \
       make \
       python3 \
-      python3-pymssql \
       python3-psycopg2 \
       rpm-build \
       sudo && \
