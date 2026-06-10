@@ -7,7 +7,7 @@ All you need to build container images to build and test [tds_fdw](https://githu
 Current distributions available:
 
 * openSUSE Leap 16.0
-* Rocky Linux 8
+* Rocky Linux 9
 * Ubuntu 24.04
 
 Current PostgreSQL versions available:
@@ -18,6 +18,7 @@ Current PostgreSQL versions available:
 * 16
 * 17
 * 18
+* 19-testing
 
 # Building images
 
@@ -29,10 +30,10 @@ Run:
 
 # Running the images
 
-Tu run, for example PostgreSQL 18 under Rocky Linux 8:
+Tu run, for example PostgreSQL 18 under Rocky Linux 9:
 
 ```
-docker run -t --name test -e "DB_NAME=mydbname" -e "DB_PASS=mydbpassword" tdsfdw/rockylinux8-postgresql:18
+docker run -t --name test -e "DB_NAME=mydbname" -e "DB_PASS=mydbpassword" tdsfdw/rockylinux9-postgresql:18
 ```
 
 Use `-e "DB_NAME=mydbname"` if you want to create a database when the container is created
